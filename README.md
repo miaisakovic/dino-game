@@ -48,7 +48,7 @@ When asked to enter credentials, input your username and personal access token.
 
 If the Pygame library has not been installed, run the following:
 ```
-pip3 install pygame
+pip3 install pygame==2.4.0
 ```
 
 ## How to Play

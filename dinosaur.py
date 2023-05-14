@@ -1,5 +1,6 @@
 import pygame
 
+
 class Dinosaur(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -14,7 +15,7 @@ class Dinosaur(pygame.sprite.Sprite):
 
         self.image = self.walking_dino[self.index]
         self.image = pygame.transform.scale_by(self.image, 1.5)
-        self.rect = self.image.get_rect(midbottom = (75, 220))
+        self.rect = self.image.get_rect(midbottom=(75, 220))
         self.gravity = 0
 
     def get_input(self):
@@ -30,7 +31,7 @@ class Dinosaur(pygame.sprite.Sprite):
             self.rect.y += self.gravity
             self.image = self.dino_jump
         else:
-            # Reset the position and gravity of the dino in case it had just jumped
+            # Reset the position and gravity in case the dino had just jumped
             self.gravity = 0
             self.rect.bottom = 220
 
@@ -48,4 +49,3 @@ class Dinosaur(pygame.sprite.Sprite):
         else:
             self.image = self.dino_collide
             self.image = pygame.transform.scale_by(self.image, 1.75)
-

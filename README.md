@@ -2,7 +2,7 @@
 A recreation of Google Chrome’s Dinosaur Game. 
 
 <p align="center">
-  <img width="800" src="https://github.com/miaisakovic/dino-game/blob/main/dino_game.png">
+  <img width="800" src="https://github.com/miaisakovic/dino-game/blob/main/images/dino_game.png">
 </p>
 
 ## Table of Contents

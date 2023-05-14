@@ -1,6 +1,7 @@
 import pygame
 from random import randint
 
+
 class Obstacles(pygame.sprite.Sprite):
     def __init__(self, obstacle):
         super().__init__()
@@ -17,14 +18,14 @@ class Obstacles(pygame.sprite.Sprite):
         else:
             self.image = pygame.image.load(f'images/cactus/{obstacle}.png')
             y_pos = 223
-        
+
         self.image = pygame.transform.scale_by(self.image, 1.5)
-        self.rect = self.image.get_rect(midbottom = (randint(1000, 1200), y_pos))
-    
+        self.rect = self.image.get_rect(midbottom=(randint(1000, 1200), y_pos))
+
     def animate_pterodactyl(self):
         if self.type == 'pterodactyl':
             self.index += 0.1
-            if self.index >= len(self.pterodactyls): 
+            if self.index >= len(self.pterodactyls):
                 self.index = 0
             self.image = self.pterodactyls[int(self.index)]
             self.image = pygame.transform.scale_by(self.image, 1.5)

@@ -5,11 +5,12 @@ from sys import exit
 from dinosaur import Dinosaur
 from obstacles import Obstacles
 
+
 class DinoGame:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Dinosaur Game')
-        self.screen = pygame.display.set_mode((900,250))
+        self.screen = pygame.display.set_mode((900, 250))
 
         self.playing_game = True
         self.score = 0
@@ -29,15 +30,21 @@ class DinoGame:
 
         self.ground_surface = pygame.image.load('images/ground.png')
         self.ground_surface = pygame.transform.scale_by(self.ground_surface, 1.25)
+
         self.redo_surface = pygame.image.load('images/redo.png')
+        self.redo_surface = pygame.transform.scale_by(self.redo_surface, 1.5)
+        self.redo_rectangle = self.redo_surface.get_rect(center=(450, 125))
+
+        self.game_over_surface = self.game_font.render('GAME OVER', False, (83, 83, 83))
+        self.game_over_rectangle = self.game_over_surface.get_rect(center=(450, 80))
 
     def run_game(self):
         while True:
             self.event_loop()
-            
+
             if self.playing_game:
-                self.screen.fill((255,255,255))
-                self.screen.blit(self.ground_surface,(0,205))
+                self.screen.fill((255, 255, 255))
+                self.screen.blit(self.ground_surface, (0, 205))
                 self.score = self.get_score()
                 self.playing_game = self.check_collision()
 
@@ -51,21 +58,24 @@ class DinoGame:
                 self.dino.draw(self.screen)
                 self.dino.update(self.playing_game)
 
+                self.screen.blit(self.redo_surface, self.redo_rectangle)
+                self.screen.blit(self.game_over_surface, self.game_over_rectangle)
+
             pygame.display.update()
 
             # Set a maximum frame rate
             self.frame_rate.tick(60)
-    
+
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-        
+
             if self.playing_game:
                 if event.type == self.create_obstacle:
-                    available_obstacles = ["pterodactyl", "cactus_1", 
-                                           "cactus_2", "cactus_3", 
+                    available_obstacles = ["pterodactyl", "cactus_1",
+                                           "cactus_2", "cactus_3",
                                            "cactus_5"]
                     self.current_obstacles.add(Obstacles(choice(available_obstacles)))
             else:
@@ -77,8 +87,8 @@ class DinoGame:
 
     def get_score(self):
         score = int(pygame.time.get_ticks() / 100) - self.overall_time_played
-        score_surface = self.game_font.render(str(score).zfill(5), False, (83,83,83))
-        score_rectangle = score_surface.get_rect(topright = (880, 20))
+        score_surface = self.game_font.render(str(score).zfill(5), False, (83, 83, 83))
+        score_rectangle = score_surface.get_rect(topright=(880, 20))
         self.screen.blit(score_surface, score_rectangle)
         return score
 
@@ -87,4 +97,3 @@ class DinoGame:
             return False
         else:
             return True
-

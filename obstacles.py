@@ -3,6 +3,22 @@ from random import randint
 
 
 class Obstacles(pygame.sprite.Sprite):
+    '''
+    An Obstacles object contains the behaviour of a cactus or pterodactyl in the game
+
+    Args:
+        obstacle: A string that specifies whether the object is a pterodactyl 
+            or a cactus
+
+    Attributes:
+        type: Stores the provided obstacle argument 
+        pterodactyls: A list of two pterodactyl image surfaces 
+            (only available when the argument 'pterodactyl' has been passed)
+        index: An integer that specifies which element to display in the pterodactyls list
+            (only available when the argument 'pterodactyl' has been passed)
+        image: The current image to be displayed
+        rect: A rectangle object to aid in the positioning of the image 
+    '''
     def __init__(self, obstacle):
         super().__init__()
 
@@ -22,7 +38,10 @@ class Obstacles(pygame.sprite.Sprite):
         self.image = pygame.transform.scale_by(self.image, 1.5)
         self.rect = self.image.get_rect(midbottom=(randint(1000, 1200), y_pos))
 
-    def animate_pterodactyl(self):
+    def __animate_pterodactyl(self):
+        '''
+        Update the pterodactyl's image surface so that it appears to fly
+        '''
         if self.type == 'pterodactyl':
             self.index += 0.1
             if self.index >= len(self.pterodactyls):
@@ -30,12 +49,17 @@ class Obstacles(pygame.sprite.Sprite):
             self.image = self.pterodactyls[int(self.index)]
             self.image = pygame.transform.scale_by(self.image, 1.5)
 
-    def remove_obstacle(self):
-        # If the obstacle is no longer visible, remove it
+    def __remove_obstacle(self):
+        '''
+        Remove pterodactyl and cactus objects that are no longer visible on the screen
+        '''
         if self.rect.x <= -100:
             self.kill()
 
     def update(self):
-        self.animate_pterodactyl()
+        '''
+        Update the state of an obstacle 
+        '''
+        self.__animate_pterodactyl()
         self.rect.x -= 6.5
-        self.remove_obstacle()
+        self.__remove_obstacle()

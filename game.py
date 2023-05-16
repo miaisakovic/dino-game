@@ -7,6 +7,20 @@ from obstacles import Obstacles
 
 
 class DinoGame:
+    '''
+    A DinoGame object manages the behaviour of the overall game 
+
+    Attributes:
+        screen: Display surface for the game
+        play_game: True if the user is currently playing the game, and False otherwise
+        score: Track the current score
+        overall_time_played: The overall time this program has been running for
+        frame_rate: A clock object to help manage the frame rate
+        game_font: A font object 
+        dino: A single group for the dinosaur object 
+        current_obstacles: A group for current obstacles (cactus and pterodactyl objects)
+        create_obstacle: Custom event that will trigger obstacle creation
+    '''
     def __init__(self):
         pygame.init()
         pygame.display.set_caption('Dinosaur Game')
@@ -24,29 +38,31 @@ class DinoGame:
 
         self.current_obstacles = pygame.sprite.Group()
 
-        # Custom event that will trigger obstacle creation
         self.create_obstacle = pygame.USEREVENT + 1
         pygame.time.set_timer(self.create_obstacle, 1500)
 
-        self.ground_surface = pygame.image.load('images/ground.png')
-        self.ground_surface = pygame.transform.scale_by(self.ground_surface, 1.25)
-
-        self.redo_surface = pygame.image.load('images/redo.png')
-        self.redo_surface = pygame.transform.scale_by(self.redo_surface, 1.5)
-        self.redo_rectangle = self.redo_surface.get_rect(center=(450, 125))
-
-        self.game_over_surface = self.game_font.render('GAME OVER', False, (83, 83, 83))
-        self.game_over_rectangle = self.game_over_surface.get_rect(center=(450, 80))
-
     def run_game(self):
+        '''
+        A game loop that updates the state of the game 
+        '''
+        ground_surface = pygame.image.load('images/ground.png')
+        ground_surface = pygame.transform.scale_by(ground_surface, 1.25)
+
+        redo_surface = pygame.image.load('images/redo.png')
+        redo_surface = pygame.transform.scale_by(redo_surface, 1.5)
+        redo_rectangle = redo_surface.get_rect(center=(450, 125))
+
+        game_over_surface = self.game_font.render('GAME OVER', False, (83, 83, 83))
+        game_over_rectangle = game_over_surface.get_rect(center=(450, 80))
+
         while True:
-            self.event_loop()
+            self.__event_loop()
 
             if self.playing_game:
                 self.screen.fill((255, 255, 255))
-                self.screen.blit(self.ground_surface, (0, 205))
-                self.score = self.get_score()
-                self.playing_game = self.check_collision()
+                self.screen.blit(ground_surface, (0, 205))
+                self.score = self.__get_score()
+                self.playing_game = self.__check_collision()
 
                 self.dino.draw(self.screen)
                 self.dino.update(self.playing_game)
@@ -58,15 +74,18 @@ class DinoGame:
                 self.dino.draw(self.screen)
                 self.dino.update(self.playing_game)
 
-                self.screen.blit(self.redo_surface, self.redo_rectangle)
-                self.screen.blit(self.game_over_surface, self.game_over_rectangle)
+                self.screen.blit(redo_surface, redo_rectangle)
+                self.screen.blit(game_over_surface, game_over_rectangle)
 
             pygame.display.update()
 
             # Set a maximum frame rate
             self.frame_rate.tick(60)
 
-    def event_loop(self):
+    def __event_loop(self):
+        '''
+        Obtain user input and create obstacles
+        '''
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -85,14 +104,26 @@ class DinoGame:
                     self.playing_game = True
                     self.overall_time_played = int(pygame.time.get_ticks() / 100)
 
-    def get_score(self):
+    def __get_score(self):
+        '''
+        Obtain and display the current game score
+
+        Returns:
+            The time (in 100 milliseconds) the user has played the game for
+        '''
         score = int(pygame.time.get_ticks() / 100) - self.overall_time_played
         score_surface = self.game_font.render(str(score).zfill(5), False, (83, 83, 83))
         score_rectangle = score_surface.get_rect(topright=(880, 20))
         self.screen.blit(score_surface, score_rectangle)
         return score
 
-    def check_collision(self):
+    def __check_collision(self):
+        '''
+        Check if the dinosaur sprite collided with either a pterodactyl or a cactus
+
+        Returns:
+            True if a collision occured, and False otherwise
+        '''
         if pygame.sprite.spritecollide(self.dino.sprite, self.current_obstacles, False):
             return False
         else:

@@ -4,6 +4,7 @@ from sys import exit
 
 from dinosaur import Dinosaur
 from obstacles import Obstacles
+from cloud import Cloud
 
 
 class DinoGame:
@@ -20,6 +21,8 @@ class DinoGame:
         dino: A single group for the dinosaur object 
         current_obstacles: A group for current obstacles (cactus and pterodactyl objects)
         create_obstacle: Custom event that will trigger obstacle creation
+        clouds: A group for current cloud objects
+        display_cloud: Custom event that will dictate how often clouds are added
     '''
     def __init__(self):
         pygame.init()
@@ -40,6 +43,11 @@ class DinoGame:
 
         self.create_obstacle = pygame.USEREVENT + 1
         pygame.time.set_timer(self.create_obstacle, 1500)
+
+        self.clouds = pygame.sprite.Group()
+
+        self.display_cloud = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.display_cloud, 1500)
 
     def run_game(self):
         '''
@@ -64,6 +72,9 @@ class DinoGame:
                 self.score = self.__get_score()
                 self.playing_game = self.__check_collision()
 
+                self.clouds.draw(self.screen)
+                self.clouds.update()
+
                 self.dino.draw(self.screen)
                 self.dino.update(self.playing_game)
 
@@ -84,7 +95,7 @@ class DinoGame:
 
     def __event_loop(self):
         '''
-        Obtain user input and create obstacles
+        Obtain user input, create obstacles, and add clouds
         '''
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -97,6 +108,9 @@ class DinoGame:
                                            "cactus_2", "cactus_3",
                                            "cactus_5"]
                     self.current_obstacles.add(Obstacles(choice(available_obstacles)))
+
+                if event.type == self.display_cloud:
+                    self.clouds.add(Cloud())
             else:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     # Delete all current obstacles from the group

@@ -15,6 +15,7 @@ class DinoGame:
         screen: Display surface for the game
         play_game: True if the user is currently playing the game, and False otherwise
         score: Track the current score
+        high_score: Track the highest score so far
         overall_time_played: The overall time this program has been running for
         frame_rate: A clock object to help manage the frame rate
         game_font: A font object 
@@ -22,7 +23,7 @@ class DinoGame:
         current_obstacles: A group for current obstacles (cactus and pterodactyl objects)
         create_obstacle: Custom event that will trigger obstacle creation
         clouds: A group for current cloud objects
-        display_cloud: Custom event that will dictate how often clouds are added
+        display_cloud: Custom event that will determine how often clouds are added
     '''
     def __init__(self):
         pygame.init()
@@ -31,6 +32,7 @@ class DinoGame:
 
         self.playing_game = True
         self.score = 0
+        self.high_score = 0
         self.overall_time_played = 0
 
         self.frame_rate = pygame.time.Clock()
@@ -63,6 +65,10 @@ class DinoGame:
         game_over_surface = self.game_font.render('GAME OVER', False, (83, 83, 83))
         game_over_rectangle = game_over_surface.get_rect(center=(450, 80))
 
+        high_score_surface = self.game_font.render("HI  " + str(self.high_score).zfill(5) + " ",
+                                                   False, (115, 115, 115), "white")
+        high_score_rectangle = high_score_surface.get_rect(topright=(800, 20))
+
         while True:
             self.__event_loop()
 
@@ -70,6 +76,8 @@ class DinoGame:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(ground_surface, (0, 205))
                 self.score = self.__get_score()
+                if self.high_score > 0:
+                    self.screen.blit(high_score_surface, high_score_rectangle)
                 self.playing_game = self.__check_collision()
 
                 self.clouds.draw(self.screen)
@@ -87,6 +95,12 @@ class DinoGame:
 
                 self.screen.blit(redo_surface, redo_rectangle)
                 self.screen.blit(game_over_surface, game_over_rectangle)
+
+                if self.score > self.high_score:
+                    self.high_score = self.score
+                    high_score_surface = self.game_font.render("HI  " + str(self.high_score).zfill(5) + " ",
+                                                               False, (115, 115, 115), "white")
+                    self.screen.blit(high_score_surface, high_score_rectangle)
 
             pygame.display.update()
 

@@ -16,7 +16,7 @@ class Cloud(pygame.sprite.Sprite):
         self.image = pygame.image.load('images/cloud.png')
 
         self.image = pygame.transform.scale_by(self.image, 1.5)
-        self.rect = self.image.get_rect(midbottom=(randint(1000, 1200), randint(50, 150)))
+        self.rect = self.image.get_rect(midbottom=(randint(1000, 1200), randint(70, 150)))
 
     def __remove_cloud(self):
         '''

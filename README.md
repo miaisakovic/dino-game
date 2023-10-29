@@ -52,6 +52,8 @@ pip3 install pygame==2.4.0
 ```
 
 ## How to Play
+Use the space bar to avoid colliding with the incoming obstacles or restart the game. 
+
 Each time you would like to play this game, run the following command:
 ```
 $ python3.9 <relative path to main.py>

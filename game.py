@@ -1,3 +1,7 @@
+import cv2
+import mediapipe as mp
+from mediapipe.framework.formats import landmark_pb2
+import pyautogui
 import pygame
 from random import choice
 from sys import exit
@@ -12,6 +16,10 @@ class DinoGame:
     A DinoGame object manages the behaviour of the overall game 
 
     Attributes:
+        cap: A VideoCapture object for the live stream
+        recognizer: A Gesture Recognizer task
+        open_palm_gesture: True if an open palm is detected, and False otherwise
+        hand_landmarks: If a hand is detected, this is a list of 21 x,y,z coordinates
         screen: Display surface for the game
         play_game: True if the user is currently playing the game, and False otherwise
         score: Track the current score
@@ -26,6 +34,21 @@ class DinoGame:
         display_cloud: Custom event that will determine how often clouds are added
     '''
     def __init__(self):
+        self.cap = cv2.VideoCapture(0)
+        cv2.namedWindow('LiveStream')
+
+        base_options = mp.tasks.BaseOptions(model_asset_path='gesture_recognizer.task')
+        running_mode = mp.tasks.vision.RunningMode.LIVE_STREAM
+        options = mp.tasks.vision.GestureRecognizerOptions(
+            base_options=base_options,
+            running_mode=running_mode,
+            result_callback=self.__get_results
+            )
+        self.recognizer = mp.tasks.vision.GestureRecognizer.create_from_options(options)
+
+        self.open_palm_gesture = False
+        self.hand_landmarks = []
+
         pygame.init()
         pygame.display.set_caption('Dinosaur Game')
         self.screen = pygame.display.set_mode((900, 250))
@@ -44,12 +67,12 @@ class DinoGame:
         self.current_obstacles = pygame.sprite.Group()
 
         self.create_obstacle = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.create_obstacle, 1500)
+        pygame.time.set_timer(self.create_obstacle, 2000)
 
         self.clouds = pygame.sprite.Group()
 
         self.display_cloud = pygame.USEREVENT + 2
-        pygame.time.set_timer(self.display_cloud, 1500)
+        pygame.time.set_timer(self.display_cloud, 2000)
 
     def run_game(self):
         '''
@@ -69,8 +92,26 @@ class DinoGame:
                                                    False, (115, 115, 115), "white")
         high_score_rectangle = high_score_surface.get_rect(topright=(800, 20))
 
+        timestamp = 0
+
         while True:
-            self.__event_loop()
+            self.__event_loop(self.cap)
+
+            _,frame = self.cap.read()
+            timestamp += 1
+
+            # Perform the Gesture Recognition task every 5 frames 
+            if timestamp % 5 == 0:
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+                self.recognizer.recognize_async(mp_image, timestamp)
+
+                frame = mp_image.numpy_view().copy()
+                frame = self.__visualize_results(frame)
+                width = int(frame.shape[0] / 3)
+                height = int(frame.shape[1] / 3)
+                frame = cv2.resize(frame, (height,width))
+
+                cv2.imshow('LiveStream', frame)
 
             if self.playing_game:
                 self.screen.fill((255, 255, 255))
@@ -107,12 +148,17 @@ class DinoGame:
             # Set a maximum frame rate
             self.frame_rate.tick(60)
 
-    def __event_loop(self):
+    def __event_loop(self, cap):
         '''
         Obtain user input, create obstacles, and add clouds
+
+        Args:
+            cap: A VideoCapture object for a live stream
         '''
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                cap.release()
+                cv2.destroyAllWindows()
                 pygame.quit()
                 exit()
 
@@ -131,6 +177,58 @@ class DinoGame:
                     self.current_obstacles.empty()
                     self.playing_game = True
                     self.overall_time_played = int(pygame.time.get_ticks() / 100)
+
+    def __get_results(self, results, frame, timestamp):
+        '''
+        Based on the results, update the attributes open_palm_gesture and 
+        hand_landmarks, and interact with the space bar
+
+        Args:
+            results: Classification results
+            frame: An image from the live stream
+            timestamp: The timestamp for when the image appeared in the live
+        '''
+        if results.gestures and results.gestures[0][0].category_name == 'Open_Palm':
+            self.open_palm_gesture = True
+            pyautogui.keyDown('space')
+        else:
+            self.open_palm_gesture = False
+            pyautogui.keyUp('space')
+
+        if results.hand_landmarks:
+            self.hand_landmarks = results.hand_landmarks[0]
+        else:
+            self.hand_landmarks = []
+
+    def __visualize_results(self, frame):
+        '''
+        Display text if an open palm is detected and draw the hand landmarks
+
+        Args:
+            frame: The image that will be drawn on
+
+        Returns:
+            The annotated frame
+        '''
+        if self.hand_landmarks:
+            hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+            hand_landmarks_proto.landmark.extend([
+                landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in self.hand_landmarks
+            ])
+            mp.solutions.drawing_utils.draw_landmarks(
+                frame,
+                hand_landmarks_proto,
+                mp.solutions.hands.HAND_CONNECTIONS,
+                mp.solutions.drawing_styles.get_default_hand_landmarks_style(),
+                mp.solutions.drawing_styles.get_default_hand_connections_style())
+
+        if self.open_palm_gesture:
+            cv2.rectangle(frame, (20, 20), (700, 135), (255,255,255), -1)
+            cv2.putText(frame, "Open Palm Detected",
+                        (35, 95), cv2.FONT_HERSHEY_DUPLEX,
+                        2, (153,76,0), 2)
+
+        return frame
 
     def __get_score(self):
         '''

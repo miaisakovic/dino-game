@@ -98,6 +98,7 @@ class DinoGame:
             self.__event_loop(self.cap)
 
             _,frame = self.cap.read()
+            frame = cv2.flip(frame, 1)
             timestamp += 1
 
             # Perform the Gesture Recognition task every 5 frames 
@@ -224,9 +225,9 @@ class DinoGame:
 
         if self.open_palm_gesture:
             cv2.rectangle(frame, (20, 20), (700, 135), (255,255,255), -1)
-            cv2.putText(frame, "Open Palm Detected",
+            cv2.putText(frame, 'Open Palm Detected',
                         (35, 95), cv2.FONT_HERSHEY_DUPLEX,
-                        2, (153,76,0), 2)
+                        2, (153,76,0), 3)
 
         return frame
 
